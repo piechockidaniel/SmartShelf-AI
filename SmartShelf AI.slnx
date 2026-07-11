@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/SmartShelf AI.AppHost/SmartShelf AI.AppHost.csproj" />
+  <Project Path="src/SmartShelf AI.ServiceDefaults/SmartShelf AI.ServiceDefaults.csproj" />
+  <Project Path="src/SmartShelf AI/SmartShelf AI.csproj" />
+</Solution>

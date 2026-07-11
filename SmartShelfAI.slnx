@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/SmartShelf.IntegrationTests/SmartShelf.IntegrationTests.csproj" />
+    <Project Path="tests/SmartShelf.UnitTests/SmartShelf.UnitTests.csproj" />
+  </Folder>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
+  <Project Path="src/SmartShelf.AI/SmartShelf.AI.csproj" />
+  <Project Path="src/SmartShelf.Api/SmartShelf.Api.csproj" />
+  <Project Path="src/SmartShelf.Contracts/SmartShelf.Contracts.csproj" />
+  <Project Path="src/SmartShelf.Core/SmartShelf.Core.csproj" />
+  <Project Path="src/SmartShelf.Dashboard/SmartShelf.Dashboard.csproj" />
+  <Project Path="src/SmartShelf.Device/SmartShelf.Device.csproj" />
+  <Project Path="src/SmartShelf.Domain/SmartShelf.Domain.csproj" />
+  <Project Path="src/SmartShelf.Infrastructure/SmartShelf.Infrastructure.csproj" />
+  <Project Path="src/SmartShelf.Worker/SmartShelf.Worker.csproj" />
+</Solution>

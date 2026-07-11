@@ -1,0 +1,6 @@
+services:
+  smartshelf.dashboard:
+    image: ${DOCKER_REGISTRY-}smartshelfdashboard
+    build:
+      context: .
+      dockerfile: src/SmartShelf.Dashboard/Dockerfile
