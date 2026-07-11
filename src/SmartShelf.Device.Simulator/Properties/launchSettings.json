@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SmartShelf.Device.Simulator": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

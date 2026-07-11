@@ -11,8 +11,10 @@
   <Project Path="src/SmartShelf.Contracts/SmartShelf.Contracts.csproj" />
   <Project Path="src/SmartShelf.Core/SmartShelf.Core.csproj" />
   <Project Path="src/SmartShelf.Dashboard/SmartShelf.Dashboard.csproj" />
+  <Project Path="src/SmartShelf.Device.Simulator/SmartShelf.Device.Simulator.csproj" Id="50b0e904-dfa7-4893-b310-6087c3d33e98" />
   <Project Path="src/SmartShelf.Device/SmartShelf.Device.csproj" />
   <Project Path="src/SmartShelf.Domain/SmartShelf.Domain.csproj" />
   <Project Path="src/SmartShelf.Infrastructure/SmartShelf.Infrastructure.csproj" />
+  <Project Path="src/SmartShelf.Shared/SmartShelf.Shared.csproj" Id="2ec8b348-a006-4ae6-8768-22911b50ef97" />
   <Project Path="src/SmartShelf.Worker/SmartShelf.Worker.csproj" />
 </Solution>
