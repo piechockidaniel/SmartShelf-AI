@@ -1,6 +1,6 @@
-﻿namespace SmartShelf.Contracts;
+namespace SmartShelf.Application.Contracts;
 
-public record TelemetryDto(
+public sealed record TelemetryDto(
     Guid DeviceId,
     double Cpu,
     double Memory,

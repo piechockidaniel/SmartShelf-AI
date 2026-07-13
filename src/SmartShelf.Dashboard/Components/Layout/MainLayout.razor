@@ -1,23 +1,21 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="app-shell">
+    <header class="app-header">
+        <a class="brand" href="/">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span>SmartShelf</span>
+        </a>
+        <div class="platform-label">ARM64 Edge Operations</div>
+    </header>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
+    <main class="app-main">
+        @Body
     </main>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
+    The dashboard connection was interrupted.
     <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <button type="button" class="dismiss" aria-label="Dismiss">x</button>
 </div>

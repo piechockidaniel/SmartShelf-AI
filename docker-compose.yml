@@ -1,6 +1,49 @@
+name: smartshelf
+
 services:
+  smartshelf.api:
+    image: smartshelf-api:local
+    platform: ${SMARTSHELF_PLATFORM:-linux/amd64}
+    build:
+      context: .
+      dockerfile: src/SmartShelf.Api/Dockerfile
+    environment:
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__SmartShelf: Data Source=/app/data/smartshelf.db;Cache=Shared
+    ports:
+      - "5099:8080"
+    volumes:
+      - smartshelf-data:/app/data
+    restart: unless-stopped
+
   smartshelf.dashboard:
-    image: ${DOCKER_REGISTRY-}smartshelfdashboard
+    image: smartshelf-dashboard:local
+    platform: ${SMARTSHELF_PLATFORM:-linux/amd64}
     build:
       context: .
       dockerfile: src/SmartShelf.Dashboard/Dockerfile
+    environment:
+      ASPNETCORE_HTTP_PORTS: 8080
+      SmartShelfApi__BaseUrl: http://smartshelf.api:8080/
+    ports:
+      - "5100:8080"
+    depends_on:
+      - smartshelf.api
+    restart: unless-stopped
+
+  smartshelf.simulator:
+    image: smartshelf-simulator:local
+    platform: ${SMARTSHELF_PLATFORM:-linux/amd64}
+    build:
+      context: .
+      dockerfile: src/SmartShelf.Device.Simulator/Dockerfile
+    environment:
+      SMARTSHELF_API_URL: http://smartshelf.api:8080
+    command: ["--scenario", "demo", "--cycles", "1000000", "--delay-ms", "2000"]
+    depends_on:
+      - smartshelf.api
+    restart: unless-stopped
+    profiles: ["simulator"]
+
+volumes:
+  smartshelf-data:

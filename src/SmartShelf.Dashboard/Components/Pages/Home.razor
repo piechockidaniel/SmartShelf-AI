@@ -1,7 +1,212 @@
-﻿@page "/"
+@page "/"
+@page "/demo"
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+@using SmartShelf.Application.Contracts
+@inject IHttpClientFactory ClientFactory
 
-<PageTitle>Home</PageTitle>
+<PageTitle>SmartShelf Operations</PageTitle>
 
-<h1>Hello, world!</h1>
+<section class="page-heading">
+    <div><h1>Shelf operations</h1><p>Live decisions from the ARM64 edge pipeline</p></div>
+    <div class="sync-controls">
+        <span class="connection-state @(error is null ? "connected" : "disconnected")">@(error is null ? "API connected" : "API unavailable")</span>
+        <button type="button" class="refresh-button" @onclick="RefreshAsync" disabled="@loading">@(loading ? "Refreshing" : "Refresh")</button>
+    </div>
+</section>
 
-Welcome to your new app.
+@if (error is not null)
+{
+    <div class="error-banner" role="alert">@error</div>
+}
+
+<section class="metrics" aria-label="Fleet summary">
+    <div class="metric"><span>Tracked shelves</span><strong>@summaries.Count</strong></div>
+    <div class="metric"><span>Open alerts</span><strong>@alerts.Count</strong></div>
+    <div class="metric"><span>Offline</span><strong>@summaries.Count(item => item.Latest.Decision.Status == "Offline")</strong></div>
+    <div class="metric"><span>Observations</span><strong>@summaries.Sum(item => item.ObservationCount)</strong></div>
+</section>
+
+<section class="data-section">
+    <div class="section-heading"><div><h2>Shelves</h2><span>@(lastUpdated is null ? "Waiting for data" : $"Updated {lastUpdated.Value:HH:mm:ss}")</span></div></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Status</th><th>Shelf ID</th><th>Inventory</th><th>Expiry</th><th>LED</th><th>Last seen</th><th>Events</th><th></th></tr></thead>
+            <tbody>
+                @if (summaries.Count == 0)
+                {
+                    <tr><td colspan="8" class="empty-state">No shelf observations received.</td></tr>
+                }
+                else
+                {
+                    @foreach (var summary in summaries)
+                    {
+                        <tr class="@(selectedShelfId == summary.ShelfId ? "selected-row" : null)">
+                            <td><span class="status-pill @StatusClass(summary.Latest.Decision.Status)">@summary.Latest.Decision.Status</span></td>
+                            <td class="shelf-id">@summary.ShelfId</td>
+                            <td>@summary.Latest.Observation.InventoryPercent%</td>
+                            <td>@ExpiryText(summary.Latest.Observation.DaysUntilExpiration)</td>
+                            <td><span class="led-swatch @summary.Latest.Decision.LedColor.ToLowerInvariant()" title="@summary.Latest.Decision.LedColor"></span></td>
+                            <td>@summary.Latest.Observation.CapturedAt.ToLocalTime().ToString("HH:mm:ss")</td>
+                            <td>@summary.ObservationCount</td>
+                            <td><button type="button" class="inspect-button" @onclick="() => SelectShelfAsync(summary.ShelfId)">Inspect</button></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+<section class="data-section alert-section">
+    <div class="section-heading"><div><h2>Alert queue</h2><span>Deduplicated operational issues</span></div></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Severity</th><th>Shelf ID</th><th>Status</th><th>Occurrences</th><th>Last event</th><th>Message</th><th></th></tr></thead>
+            <tbody>
+                @if (alerts.Count == 0)
+                {
+                    <tr><td colspan="7" class="empty-state">No open alerts.</td></tr>
+                }
+                else
+                {
+                    @foreach (var alert in alerts)
+                    {
+                        <tr>
+                            <td><span class="severity-pill @alert.Severity.ToLowerInvariant()">@alert.Severity</span></td>
+                            <td class="shelf-id">@alert.ShelfId</td>
+                            <td>@alert.Status</td>
+                            <td>@alert.Occurrences</td>
+                            <td>@alert.LastOccurredAt.ToLocalTime().ToString("HH:mm:ss")</td>
+                            <td class="reason">@alert.Message</td>
+                            <td>
+                                @if (alert.Status == "Active")
+                                {
+                                    <button type="button" class="inspect-button" @onclick="() => AcknowledgeAlertAsync(alert.Id)">Acknowledge</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+<section class="data-section history-section">
+    <div class="section-heading"><div><h2>Recent activity</h2><span>@(selectedShelfId is null ? "Select a shelf" : selectedShelfId.ToString())</span></div></div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Time</th><th>Decision</th><th>Inventory</th><th>Days to expiry</th><th>Confidence</th><th>Reason</th></tr></thead>
+            <tbody>
+                @if (history.Count == 0)
+                {
+                    <tr><td colspan="6" class="empty-state">No recent activity for this shelf.</td></tr>
+                }
+                else
+                {
+                    @foreach (var item in history)
+                    {
+                        <tr>
+                            <td>@item.Observation.CapturedAt.ToLocalTime().ToString("HH:mm:ss")</td>
+                            <td><span class="status-pill @StatusClass(item.Decision.Status)">@item.Decision.Status</span></td>
+                            <td>@item.Observation.InventoryPercent%</td>
+                            <td>@item.Observation.DaysUntilExpiration</td>
+                            <td>@item.Decision.Confidence.ToString("P0")</td>
+                            <td class="reason">@item.Decision.Reason</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    private readonly CancellationTokenSource lifetime = new();
+    private readonly SemaphoreSlim refreshLock = new(1, 1);
+    private readonly PeriodicTimer refreshTimer = new(TimeSpan.FromSeconds(2));
+    private IReadOnlyList<ShelfSummaryDto> summaries = [];
+    private IReadOnlyList<LatestShelfObservationDto> history = [];
+    private IReadOnlyList<AlertDto> alerts = [];
+    private Guid? selectedShelfId;
+    private DateTimeOffset? lastUpdated;
+    private string? error;
+    private bool loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+        _ = RunRefreshLoopAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (!await refreshLock.WaitAsync(0)) return;
+        loading = true;
+        try
+        {
+            var client = ClientFactory.CreateClient("SmartShelfApi");
+            summaries = await client.GetFromJsonAsync<List<ShelfSummaryDto>>("api/v1/shelves?limit=100", lifetime.Token) ?? [];
+            if (selectedShelfId is null && summaries.Count > 0) selectedShelfId = summaries[0].ShelfId;
+            alerts = await client.GetFromJsonAsync<List<AlertDto>>("api/v1/alerts?openOnly=true&limit=100", lifetime.Token) ?? [];
+            await LoadHistoryAsync(client);
+            lastUpdated = DateTimeOffset.Now;
+            error = null;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+        {
+            error = "Cannot reach the SmartShelf API. Existing data remains visible.";
+        }
+        finally
+        {
+            loading = false;
+            refreshLock.Release();
+        }
+    }
+
+    private async Task SelectShelfAsync(Guid shelfId)
+    {
+        selectedShelfId = shelfId;
+        await LoadHistoryAsync(ClientFactory.CreateClient("SmartShelfApi"));
+    }
+
+
+    private async Task AcknowledgeAlertAsync(Guid alertId)
+    {
+        var client = ClientFactory.CreateClient("SmartShelfApi");
+        using var response = await client.PostAsync(
+            $"api/v1/alerts/{alertId:D}/acknowledge", null, lifetime.Token);
+        response.EnsureSuccessStatusCode();
+        await RefreshAsync();
+    }
+    private async Task LoadHistoryAsync(HttpClient client)
+    {
+        if (selectedShelfId is null) { history = []; return; }
+        history = await client.GetFromJsonAsync<List<LatestShelfObservationDto>>(
+            $"api/v1/shelves/{selectedShelfId:D}/observations?limit=20", lifetime.Token) ?? [];
+    }
+
+    private async Task RunRefreshLoopAsync()
+    {
+        try
+        {
+            while (await refreshTimer.WaitForNextTickAsync(lifetime.Token)) await InvokeAsync(RefreshAsync);
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private static string StatusClass(string status) => status.ToLowerInvariant();
+    private static string ExpiryText(int days) => days switch { < 0 => "Expired", 0 => "Today", 1 => "1 day", _ => $"{days} days" };
+
+    public ValueTask DisposeAsync()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
+        refreshTimer.Dispose();
+        refreshLock.Dispose();
+        return ValueTask.CompletedTask;
+    }
+}
+
+

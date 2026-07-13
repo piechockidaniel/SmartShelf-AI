@@ -1,20 +1,22 @@
 <Solution>
-  <Folder Name="/tests/">
-    <Project Path="tests/SmartShelf.IntegrationTests/SmartShelf.IntegrationTests.csproj" />
-    <Project Path="tests/SmartShelf.UnitTests/SmartShelf.UnitTests.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/SmartShelf.Domain/SmartShelf.Domain.csproj" />
+    <Project Path="src/SmartShelf.Application/SmartShelf.Application.csproj" />
+    <Project Path="src/SmartShelf.Infrastructure/SmartShelf.Infrastructure.csproj" />
+    <Project Path="src/SmartShelf.AI/SmartShelf.AI.csproj" />
+    <Project Path="src/SmartShelf.Api/SmartShelf.Api.csproj" />
+    <Project Path="src/SmartShelf.Dashboard/SmartShelf.Dashboard.csproj" />
+    <Project Path="src/SmartShelf.Device/SmartShelf.Device.csproj" />
+    <Project Path="src/SmartShelf.Device.Simulator/SmartShelf.Device.Simulator.csproj" />
+    <Project Path="src/SmartShelf.Shared/SmartShelf.Shared.csproj" />
   </Folder>
-  <Project Path="docker-compose.dcproj">
-    <Build />
-  </Project>
-  <Project Path="src/SmartShelf.AI/SmartShelf.AI.csproj" />
-  <Project Path="src/SmartShelf.Api/SmartShelf.Api.csproj" />
-  <Project Path="src/SmartShelf.Contracts/SmartShelf.Contracts.csproj" />
-  <Project Path="src/SmartShelf.Core/SmartShelf.Core.csproj" />
-  <Project Path="src/SmartShelf.Dashboard/SmartShelf.Dashboard.csproj" />
-  <Project Path="src/SmartShelf.Device.Simulator/SmartShelf.Device.Simulator.csproj" Id="50b0e904-dfa7-4893-b310-6087c3d33e98" />
-  <Project Path="src/SmartShelf.Device/SmartShelf.Device.csproj" />
-  <Project Path="src/SmartShelf.Domain/SmartShelf.Domain.csproj" />
-  <Project Path="src/SmartShelf.Infrastructure/SmartShelf.Infrastructure.csproj" />
-  <Project Path="src/SmartShelf.Shared/SmartShelf.Shared.csproj" Id="2ec8b348-a006-4ae6-8768-22911b50ef97" />
-  <Project Path="src/SmartShelf.Worker/SmartShelf.Worker.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/SmartShelf.UnitTests/SmartShelf.UnitTests.csproj" />
+    <Project Path="tests/SmartShelf.IntegrationTests/SmartShelf.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/docker/">
+    <Project Path="docker-compose.dcproj">
+      <Build />
+    </Project>
+  </Folder>
 </Solution>

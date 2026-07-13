@@ -5,14 +5,21 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-SmartShelf.Device-8183a2d1-40af-4377-a7a7-01d8d2fd4495</UserSecretsId>
+    <RuntimeIdentifiers>linux-arm64;win-arm64;linux-x64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartShelf.Application\SmartShelf.Application.csproj" />
+    <ProjectReference Include="..\SmartShelf.Infrastructure\SmartShelf.Infrastructure.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Iot.Device.Bindings" Version="4.2.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.27.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.27.1" />
     <PackageReference Include="MQTTnet" Version="5.2.0.1603" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
     <PackageReference Include="System.Device.Gpio" Version="4.2.0" />
   </ItemGroup>
 </Project>
