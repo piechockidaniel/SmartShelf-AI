@@ -7,12 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.10.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartShelf.Application\SmartShelf.Application.csproj" />
+    <ProjectReference Include="..\SmartShelf.Infrastructure\SmartShelf.Infrastructure.csproj" />
+    <ProjectReference Include="..\SmartShelf.Infrastructure.Sqlite\SmartShelf.Infrastructure.Sqlite.csproj" />
+    <ProjectReference Include="..\SmartShelf.Infrastructure.InMemory\SmartShelf.Infrastructure.InMemory.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
 
 </Project>

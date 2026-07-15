@@ -1,0 +1,18 @@
+﻿* text=auto eol=crlf
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.cs text eol=crlf
+*.csproj text eol=crlf
+
+# Visual Studio temporary files
+*.user filter=lfs -crlf
+*.suo binary
+
+# Lock files
+packages.lock.json text eol=lf
+
+# Prevent accidental binary diffs
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary

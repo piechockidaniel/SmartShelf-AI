@@ -1,0 +1,24 @@
+﻿<Project>
+  <PropertyGroup>
+    <!-- Enable nullable and implicit usings globally -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Treat warnings as errors when CI=true (set in CI pipeline) -->
+    <TreatWarningsAsErrors Condition="'$(CI)' == 'true'">true</TreatWarningsAsErrors>
+
+    <!-- Use the latest C# language version available for the SDK -->
+    <LangVersion>latest</LangVersion>
+
+    <!-- Deterministic builds where supported -->
+    <Deterministic>true</Deterministic>
+
+    <!-- Analyzer settings -->
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+
+    <!-- Disable automatic package generation by default -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+</Project>

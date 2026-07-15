@@ -1,0 +1,238 @@
+@page "/shelves/manage"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using SmartShelf.Application.Contracts
+@inject IHttpClientFactory ClientFactory
+
+<PageTitle>Shelf Setup</PageTitle>
+
+<section class="page-heading">
+    <div><h1>Shelf setup</h1><p>Configure physical locations, edge devices, and camera inputs</p></div>
+    <button type="button" class="primary-command" @onclick="StartCreate">New shelf</button>
+</section>
+
+@if (message is not null)
+{
+    <div class="notice @(hasError ? "error" : "success")" role="status">@message</div>
+}
+
+<div class="management-grid">
+    <section class="shelf-list">
+        <div class="section-title"><h2>Configured shelves</h2><span>@shelves.Count total</span></div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Name</th><th>Location</th><th>Device</th><th>Camera</th><th>State</th><th></th></tr></thead>
+                <tbody>
+                    @if (loading)
+                    {
+                        <tr><td colspan="6" class="empty-state">Loading shelf configuration...</td></tr>
+                    }
+                    else if (shelves.Count == 0)
+                    {
+                        <tr><td colspan="6" class="empty-state">No shelves configured.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var shelf in shelves)
+                        {
+                            <tr class="@(model.Id == shelf.Id ? "selected-row" : null)" @key="shelf.Id">
+                                <td><strong>@shelf.Name</strong><small>@shelf.Id</small></td>
+                                <td>@shelf.Warehouse / @shelf.Aisle / @shelf.ShelfCode / @shelf.Position</td>
+                                <td>@ValueOrDash(shelf.DeviceId)</td>
+                                <td>@ValueOrDash(shelf.CameraDevice)</td>
+                                <td>
+                                    <label class="state-toggle">
+                                        <input type="checkbox" checked="@shelf.Enabled" @onchange="eventArgs => SetEnabledAsync(shelf, (bool)eventArgs.Value!)" />
+                                        <span>@(shelf.Enabled ? "Enabled" : "Disabled")</span>
+                                    </label>
+                                </td>
+                                <td class="row-actions"><button type="button" @onclick="() => Edit(shelf)">Edit</button></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="editor-panel">
+        <div class="section-title">
+            <h2>@(model.Id is null ? "New shelf" : "Edit shelf")</h2>
+            @if (model.Id is not null) { <span>@model.Id</span> }
+        </div>
+
+        <EditForm Model="model" OnValidSubmit="SaveAsync" FormName="shelf-editor">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="validation-summary" />
+
+            <div class="field full"><label for="shelf-name">Name</label><InputText id="shelf-name" @bind-Value="model.Name" /></div>
+            <div class="field"><label for="warehouse">Warehouse</label><InputText id="warehouse" @bind-Value="model.Warehouse" /></div>
+            <div class="field"><label for="aisle">Aisle</label><InputText id="aisle" @bind-Value="model.Aisle" /></div>
+            <div class="field"><label for="shelf-code">Shelf code</label><InputText id="shelf-code" @bind-Value="model.ShelfCode" /></div>
+            <div class="field"><label for="position">Position</label><InputText id="position" @bind-Value="model.Position" /></div>
+            <div class="field full resource-help">Hardware, products, and rules are assigned in the visual configurator.</div>
+
+            <div class="editor-actions">
+                <button type="submit" class="primary-command" disabled="@saving">@(saving ? "Saving" : "Save shelf")</button>
+                <button type="button" class="secondary-command" @onclick="CancelEdit">Cancel</button>
+            </div>
+        </EditForm>
+
+        @if (model.Id is not null)
+        {
+            <div class="danger-zone">
+                @if (pendingDeleteId == model.Id)
+                {
+                    <span>Delete this shelf permanently?</span>
+                    <button type="button" class="danger-command" @onclick="ConfirmDeleteAsync">Confirm delete</button>
+                    <button type="button" class="secondary-command" @onclick="CancelDelete">Keep shelf</button>
+                }
+                else
+                {
+                    <button type="button" class="danger-link" @onclick="RequestDelete">Delete shelf</button>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    private IReadOnlyList<ShelfDto> shelves = [];
+    private ShelfFormModel model = new();
+    private Guid? pendingDeleteId;
+    private bool loading;
+    private bool saving;
+    private bool hasError;
+    private string? message;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        try
+        {
+            shelves = await Api().GetFromJsonAsync<List<ShelfDto>>("api/v1/shelves") ?? [];
+            hasError = false;
+        }
+        catch (HttpRequestException exception)
+        {
+            ShowError($"Could not load shelves: {exception.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void StartCreate()
+    {
+        model = new ShelfFormModel();
+        pendingDeleteId = null;
+        message = null;
+    }
+
+    private void Edit(ShelfDto shelf)
+    {
+        model = new ShelfFormModel
+        {
+            Id = shelf.Id, Name = shelf.Name, Warehouse = shelf.Warehouse, Aisle = shelf.Aisle,
+            ShelfCode = shelf.ShelfCode, Position = shelf.Position, Version = shelf.Version
+        };
+        pendingDeleteId = null;
+        message = null;
+    }
+
+    private async Task SaveAsync()
+    {
+        saving = true;
+        try
+        {
+            var payload = new ShelfPayload(
+                model.Name, new LocationPayload(model.Warehouse, model.Aisle, model.ShelfCode, model.Position),
+                model.Id is null ? null : model.Version);
+            using var response = model.Id is null
+                ? await Api().PostAsJsonAsync("api/v1/shelves", payload)
+                : await Api().PutAsJsonAsync($"api/v1/shelves/{model.Id:D}", payload);
+            await EnsureSuccessAsync(response);
+            var successMessage = model.Id is null ? "Shelf created." : "Shelf updated.";
+            StartCreate();
+            ShowSuccess(successMessage);
+            await LoadAsync();
+        }
+        catch (Exception exception) when (exception is HttpRequestException or InvalidOperationException)
+        {
+            ShowError(exception.Message);
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private async Task SetEnabledAsync(ShelfDto shelf, bool enabled)
+    {
+        try
+        {
+            using var response = await Api().PatchAsJsonAsync(
+                $"api/v1/shelves/{shelf.Id:D}/enabled", new EnabledPayload(enabled, shelf.Version));
+            await EnsureSuccessAsync(response);
+            ShowSuccess($"{shelf.Name} {(enabled ? "enabled" : "disabled")}.");
+            await LoadAsync();
+        }
+        catch (Exception exception) when (exception is HttpRequestException or InvalidOperationException)
+        {
+            ShowError(exception.Message);
+        }
+    }
+
+    private void RequestDelete() => pendingDeleteId = model.Id;
+    private void CancelDelete() => pendingDeleteId = null;
+    private void CancelEdit() => StartCreate();
+
+    private async Task ConfirmDeleteAsync()
+    {
+        if (pendingDeleteId is null) return;
+        try
+        {
+            using var response = await Api().DeleteAsync($"api/v1/shelves/{pendingDeleteId:D}?expectedVersion={model.Version}");
+            await EnsureSuccessAsync(response);
+            StartCreate();
+            ShowSuccess("Shelf deleted.");
+            await LoadAsync();
+        }
+        catch (Exception exception) when (exception is HttpRequestException or InvalidOperationException)
+        {
+            ShowError(exception.Message);
+        }
+    }
+
+    private HttpClient Api() => ClientFactory.CreateClient("SmartShelfApi");
+
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response)
+    {
+        if (response.IsSuccessStatusCode) return;
+        var details = await response.Content.ReadAsStringAsync();
+        throw new InvalidOperationException($"API returned {(int)response.StatusCode}: {details}");
+    }
+
+    private void ShowSuccess(string text) { message = text; hasError = false; }
+    private void ShowError(string text) { message = text; hasError = true; }
+    private static string ValueOrDash(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    private sealed class ShelfFormModel
+    {
+        public Guid? Id { get; set; }
+        public int Version { get; set; }
+        [Required, StringLength(120)] public string Name { get; set; } = string.Empty;
+        [Required, StringLength(80)] public string Warehouse { get; set; } = string.Empty;
+        [Required, StringLength(40)] public string Aisle { get; set; } = string.Empty;
+        [Required, StringLength(40)] public string ShelfCode { get; set; } = string.Empty;
+        [StringLength(40)] public string Position { get; set; } = string.Empty;
+    }
+
+    private sealed record LocationPayload(string Warehouse, string Aisle, string Shelf, string Position);
+    private sealed record ShelfPayload(string Name, LocationPayload Location, int? ExpectedVersion);
+    private sealed record EnabledPayload(bool Enabled, int ExpectedVersion);
+}
+
