@@ -1,4 +1,4 @@
-using SmartShelf.Domain.Common;
+﻿using SmartShelf.Domain.Common;
 using SmartShelf.Domain.Enums;
 
 namespace SmartShelf.Domain.Entities;
@@ -37,7 +37,11 @@ public sealed class Alert : AuditableEntity
 
     public void Acknowledge(DateTimeOffset acknowledgedAt)
     {
-        if (Status == AlertStatus.Resolved) return;
+        if (Status == AlertStatus.Resolved)
+        {
+            return;
+        }
+
         Status = AlertStatus.Acknowledged;
         AcknowledgedAt = acknowledgedAt;
         Touch();

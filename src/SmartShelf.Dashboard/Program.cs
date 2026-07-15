@@ -6,7 +6,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient("SmartShelfApi", client =>
 {
-    var apiUrl = builder.Configuration["SmartShelfApi:BaseUrl"] ?? "http://127.0.0.1:5099/";
+    var apiUrl = builder.Configuration["SmartShelfApi:BaseUrl"] ?? "http://127.0.0.1:7066/";
     client.BaseAddress = new Uri(apiUrl);
     client.Timeout = TimeSpan.FromSeconds(5);
 });

@@ -1,0 +1,53 @@
+﻿
+root = true
+
+# top-most EditorConfig file
+
+[*]
+end_of_line = crlf
+insert_final_newline = true
+charset = utf-8-bom
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+max_line_length = 120
+
+[*.{cs,csx}]
+# C# coding conventions
+dotnet_sort_system_directives_first = true
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:warning
+csharp_style_var_elsewhere = true:warning
+csharp_prefer_braces = true:warning
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = when_on_single_line:suggestion
+csharp_new_line_before_open_brace = all
+csharp_preserve_single_line_blocks = false
+namespace_declarations = file_scoped
+
+# Naming rules
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = prefix_underscore
+dotnet_naming_rule.private_fields_underscore.severity = suggestion
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.prefix_underscore.required_prefix = _
+dotnet_naming_style.prefix_underscore.capitalization = camel_case
+
+# File headers
+file_header_template = Copyright (c) Daniel Piechocki. All rights reserved.
+
+[*.{cshtml,razor}]
+indent_size = 2
+
+[*.{json,xml,csproj,sln}]
+indent_size = 2
+
+# Exclude binary and generated files
+[bin/**]
+indent_size = 4
+
+[obj/**]
+indent_size = 4

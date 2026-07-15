@@ -1,19 +1,14 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/SmartShelf.Domain/SmartShelf.Domain.csproj" />
     <Project Path="src/SmartShelf.Application/SmartShelf.Application.csproj" />
-    <Project Path="src/SmartShelf.Infrastructure/SmartShelf.Infrastructure.csproj" />
-    <Project Path="src/SmartShelf.AI/SmartShelf.AI.csproj" />
-    <Project Path="src/SmartShelf.Api/SmartShelf.Api.csproj" />
     <Project Path="src/SmartShelf.Dashboard/SmartShelf.Dashboard.csproj" />
-    <Project Path="src/SmartShelf.Device/SmartShelf.Device.csproj" />
     <Project Path="src/SmartShelf.Device.Simulator/SmartShelf.Device.Simulator.csproj" />
-    <Project Path="src/SmartShelf.Shared/SmartShelf.Shared.csproj" />
+    <Project Path="src/SmartShelf.Device/SmartShelf.Device.csproj" />
+    <Project Path="src/SmartShelf.Domain/SmartShelf.Domain.csproj" />
+    <Project Path="src/SmartShelf.Infrastructure.InMemory/SmartShelf.Infrastructure.InMemory.csproj" />
+    <Project Path="src/SmartShelf.Infrastructure.Sqlite/SmartShelf.Infrastructure.Sqlite.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/SmartShelf.UnitTests/SmartShelf.UnitTests.csproj" />
-    <Project Path="tests/SmartShelf.IntegrationTests/SmartShelf.IntegrationTests.csproj" />
-  </Folder>
+  <Folder Name="/tests/" />
   <Folder Name="/docker/">
     <Project Path="docker-compose.dcproj">
       <Build />

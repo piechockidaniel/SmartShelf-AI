@@ -1,5 +1,6 @@
 using SmartShelf.Domain.Entities;
 using SmartShelf.Domain.Enums;
+using Xunit;
 
 namespace SmartShelf.UnitTests;
 

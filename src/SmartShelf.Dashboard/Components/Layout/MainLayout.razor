@@ -6,12 +6,14 @@
             <span class="brand-mark" aria-hidden="true"></span>
             <span>SmartShelf</span>
         </a>
+        <nav class="primary-nav" aria-label="Primary navigation">
+            <NavLink href="/" Match="NavLinkMatch.All">Operations</NavLink>
+            <NavLink href="/shelves/manage">Shelf setup</NavLink>
+        </nav>
         <div class="platform-label">ARM64 Edge Operations</div>
     </header>
 
-    <main class="app-main">
-        @Body
-    </main>
+    <main class="app-main">@Body</main>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>

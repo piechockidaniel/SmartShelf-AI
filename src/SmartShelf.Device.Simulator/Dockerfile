@@ -3,7 +3,6 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 COPY ["Directory.Build.props", "."]
-COPY ["Directory.Packages.props", "."]
 COPY ["src/SmartShelf.Device.Simulator/SmartShelf.Device.Simulator.csproj", "src/SmartShelf.Device.Simulator/"]
 RUN dotnet restore "src/SmartShelf.Device.Simulator/SmartShelf.Device.Simulator.csproj"
 

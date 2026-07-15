@@ -1,0 +1,53 @@
+.page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+.page-heading h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0; }
+.page-heading p { margin: 5px 0 0; color: #65707c; font-size: 14px; }
+.primary-command, .secondary-command, .danger-command, .row-actions button, .danger-link { min-height: 34px; padding: 0 14px; border-radius: 5px; font-size: 13px; font-weight: 650; }
+.primary-command { border: 1px solid #1e2935; background: #1e2935; color: #fff; }
+.primary-command:hover { background: #303e4d; }
+.primary-command:disabled { opacity: .55; }
+.secondary-command, .row-actions button { border: 1px solid #b8c0c8; background: #fff; color: #24303d; }
+.secondary-command:hover, .row-actions button:hover { border-color: #4c5967; background: #f7f8f9; }
+.notice { margin-bottom: 18px; padding: 10px 12px; border-left: 3px solid; font-size: 13px; }
+.notice.success { border-color: #27864b; background: #eaf6ee; color: #185f34; }
+.notice.error { border-color: #c63f35; background: #fff0ef; color: #79231d; }
+.management-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(320px, .75fr); gap: 20px; align-items: start; }
+.shelf-list, .editor-panel { min-width: 0; }
+.section-title { min-height: 38px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.section-title h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.section-title span { color: #737e89; font-size: 11px; overflow-wrap: anywhere; }
+.table-wrap { overflow-x: auto; background: #fff; border: 1px solid #dce1e6; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { height: 38px; padding: 0 10px; background: #f7f8f9; border-bottom: 1px solid #dce1e6; color: #5c6672; font-size: 10px; font-weight: 700; text-align: left; text-transform: uppercase; white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid #e8ebee; color: #293542; vertical-align: middle; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td, .selected-row td { background: #f6f9fb; }
+td strong { display: block; font-size: 13px; }
+td small { display: block; margin-top: 3px; color: #7b858f; font-family: Consolas, monospace; }
+.empty-state { height: 80px; color: #74808c; text-align: center; }
+.row-actions { text-align: right; }
+.state-toggle { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.state-toggle input { width: 16px; height: 16px; accent-color: #27864b; }
+.editor-panel { padding: 16px; background: #fff; border: 1px solid #dce1e6; }
+.editor-panel form { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.field { min-width: 0; }
+.field.full, .validation-summary, .editor-actions { grid-column: 1 / -1; }
+.field label { display: block; margin-bottom: 5px; color: #4e5a66; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.field input { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #bfc7cf; border-radius: 4px; color: #1e2935; background: #fff; }
+.field input:focus { border-color: #2675b8; outline: 2px solid rgba(38,117,184,.16); }
+.field input.invalid { border-color: #c63f35; }
+.resource-help { padding: 10px; border-left: 3px solid #2675b8; background: #eef6fc; color: #40566b; font-size: 12px; }
+.validation-summary { color: #a1271e; font-size: 12px; }
+.validation-summary ul { margin: 0; padding-left: 18px; }
+.editor-actions { display: flex; gap: 8px; margin-top: 5px; }
+.danger-zone { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 18px; padding-top: 14px; border-top: 1px solid #e4e7ea; color: #79231d; font-size: 12px; }
+.danger-command { border: 1px solid #b93229; background: #b93229; color: #fff; }
+.danger-link { padding: 0; border: 0; background: transparent; color: #a1271e; text-decoration: underline; }
+@media (max-width: 1080px) {
+.management-grid { grid-template-columns: 1fr; }
+.editor-panel { max-width: 680px; }
+}
+@media (max-width: 620px) {
+.page-heading { flex-direction: column; }
+.editor-panel form { grid-template-columns: 1fr; }
+.field { grid-column: 1 / -1; }
+}

@@ -3,10 +3,11 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 COPY ["Directory.Build.props", "."]
-COPY ["Directory.Packages.props", "."]
 COPY ["src/SmartShelf.Domain/SmartShelf.Domain.csproj", "src/SmartShelf.Domain/"]
 COPY ["src/SmartShelf.Application/SmartShelf.Application.csproj", "src/SmartShelf.Application/"]
 COPY ["src/SmartShelf.Infrastructure/SmartShelf.Infrastructure.csproj", "src/SmartShelf.Infrastructure/"]
+COPY ["src/SmartShelf.Infrastructure.InMemory/SmartShelf.Infrastructure.InMemory.csproj", "src/SmartShelf.Infrastructure.InMemory/"]
+COPY ["src/SmartShelf.Infrastructure.Sqlite/SmartShelf.Infrastructure.Sqlite.csproj", "src/SmartShelf.Infrastructure.Sqlite/"]
 COPY ["src/SmartShelf.Api/SmartShelf.Api.csproj", "src/SmartShelf.Api/"]
 RUN dotnet restore "src/SmartShelf.Api/SmartShelf.Api.csproj"
 

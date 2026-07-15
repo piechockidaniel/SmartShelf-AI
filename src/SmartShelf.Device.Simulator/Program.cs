@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
@@ -17,7 +17,7 @@ internal sealed class EmulatorOptions(string[] args)
     public bool Offline { get; } = args.Contains("--offline", StringComparer.OrdinalIgnoreCase);
     public string ApiUrl { get; } = Read(args, "--api-url")
         ?? Environment.GetEnvironmentVariable("SMARTSHELF_API_URL")
-        ?? "http://127.0.0.1:5099";
+        ?? "http://127.0.0.1:5247";
 
     private static string? Read(string[] args, string name)
     {
@@ -28,7 +28,7 @@ internal sealed class EmulatorOptions(string[] args)
 
 internal sealed class ShelfEmulator(EmulatorOptions options)
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
@@ -48,7 +48,7 @@ internal sealed class ShelfEmulator(EmulatorOptions options)
             var envelope = new EmulatedShelfEvent(
                 timestamp, options.ShelfId, RuntimeInformation.ProcessArchitecture.ToString(), reading, decision);
 
-            Console.WriteLine(JsonSerializer.Serialize(envelope, JsonOptions));
+            Console.WriteLine(JsonSerializer.Serialize(envelope, _jsonOptions));
 
             if (httpClient is not null)
             {
@@ -115,11 +115,20 @@ internal static class EdgeDecisionEngine
     public static ShelfDecision Evaluate(ShelfReading reading)
     {
         if (!reading.SensorOnline)
+        {
             return new("Offline", "Blue", "Sensor unavailable; keep last known state and request inspection.", 0.95);
+        }
+
         if (reading.InventoryPercent <= 10 || reading.ExpiredProductDetected)
+        {
             return new("Critical", "Red", "Immediate action required at the shelf edge.", 0.98);
+        }
+
         if (reading.InventoryPercent < 30 || reading.DaysUntilExpiration < 7)
+        {
             return new("Warning", "Yellow", "Local ARM64 controller predicts replenishment or expiry risk.", 0.86);
+        }
+
         return new("Healthy", "Green", "Shelf state is normal; no cloud round trip required.", 0.99);
     }
 }

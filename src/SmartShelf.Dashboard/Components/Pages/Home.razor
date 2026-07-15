@@ -21,7 +21,7 @@
 }
 
 <section class="metrics" aria-label="Fleet summary">
-    <div class="metric"><span>Tracked shelves</span><strong>@summaries.Count</strong></div>
+    <div class="metric"><span>Configured shelves</span><strong>@configuredShelves.Count</strong></div>
     <div class="metric"><span>Open alerts</span><strong>@alerts.Count</strong></div>
     <div class="metric"><span>Offline</span><strong>@summaries.Count(item => item.Latest.Decision.Status == "Offline")</strong></div>
     <div class="metric"><span>Observations</span><strong>@summaries.Sum(item => item.ObservationCount)</strong></div>
@@ -31,11 +31,11 @@
     <div class="section-heading"><div><h2>Shelves</h2><span>@(lastUpdated is null ? "Waiting for data" : $"Updated {lastUpdated.Value:HH:mm:ss}")</span></div></div>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>Status</th><th>Shelf ID</th><th>Inventory</th><th>Expiry</th><th>LED</th><th>Last seen</th><th>Events</th><th></th></tr></thead>
+            <thead><tr><th>Status</th><th>Name</th><th>Shelf ID</th><th>Inventory</th><th>Expiry</th><th>LED</th><th>Last seen</th><th>Events</th><th></th></tr></thead>
             <tbody>
                 @if (summaries.Count == 0)
                 {
-                    <tr><td colspan="8" class="empty-state">No shelf observations received.</td></tr>
+                    <tr><td colspan="9" class="empty-state">No shelf observations received.</td></tr>
                 }
                 else
                 {
@@ -43,6 +43,7 @@
                     {
                         <tr class="@(selectedShelfId == summary.ShelfId ? "selected-row" : null)">
                             <td><span class="status-pill @StatusClass(summary.Latest.Decision.Status)">@summary.Latest.Decision.Status</span></td>
+                            <td>@ShelfName(summary.ShelfId)</td>
                             <td class="shelf-id">@summary.ShelfId</td>
                             <td>@summary.Latest.Observation.InventoryPercent%</td>
                             <td>@ExpiryText(summary.Latest.Observation.DaysUntilExpiration)</td>
@@ -127,6 +128,7 @@
     private readonly SemaphoreSlim refreshLock = new(1, 1);
     private readonly PeriodicTimer refreshTimer = new(TimeSpan.FromSeconds(2));
     private IReadOnlyList<ShelfSummaryDto> summaries = [];
+    private IReadOnlyList<ShelfDto> configuredShelves = [];
     private IReadOnlyList<LatestShelfObservationDto> history = [];
     private IReadOnlyList<AlertDto> alerts = [];
     private Guid? selectedShelfId;
@@ -147,7 +149,8 @@
         try
         {
             var client = ClientFactory.CreateClient("SmartShelfApi");
-            summaries = await client.GetFromJsonAsync<List<ShelfSummaryDto>>("api/v1/shelves?limit=100", lifetime.Token) ?? [];
+            summaries = await client.GetFromJsonAsync<List<ShelfSummaryDto>>("api/v1/shelf-status?limit=100", lifetime.Token) ?? [];
+            configuredShelves = await client.GetFromJsonAsync<List<ShelfDto>>("api/v1/shelves", lifetime.Token) ?? [];
             if (selectedShelfId is null && summaries.Count > 0) selectedShelfId = summaries[0].ShelfId;
             alerts = await client.GetFromJsonAsync<List<AlertDto>>("api/v1/alerts?openOnly=true&limit=100", lifetime.Token) ?? [];
             await LoadHistoryAsync(client);
@@ -196,6 +199,9 @@
         catch (OperationCanceledException) { }
     }
 
+    private string ShelfName(Guid shelfId)
+        => configuredShelves.FirstOrDefault(shelf => shelf.Id == shelfId)?.Name ?? "Unregistered";
+
     private static string StatusClass(string status) => status.ToLowerInvariant();
     private static string ExpiryText(int days) => days switch { < 0 => "Expired", 0 => "Today", 1 => "1 day", _ => $"{days} days" };
 
@@ -208,5 +214,3 @@
         return ValueTask.CompletedTask;
     }
 }
-
-

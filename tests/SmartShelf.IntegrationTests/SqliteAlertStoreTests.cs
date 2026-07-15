@@ -1,5 +1,6 @@
 using SmartShelf.Domain.Enums;
-using SmartShelf.Infrastructure.Persistence;
+using SmartShelf.Infrastructure.Sqlite.Persistence;
+using Xunit;
 
 namespace SmartShelf.IntegrationTests;
 

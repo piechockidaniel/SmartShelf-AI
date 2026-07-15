@@ -6,8 +6,5 @@ public abstract class AuditableEntity : Entity
 
     public DateTime? UpdatedAt { get; protected set; }
 
-    public void Touch()
-    {
-        UpdatedAt = DateTime.UtcNow;
-    }
+    public void Touch() => UpdatedAt = DateTime.UtcNow;
 }

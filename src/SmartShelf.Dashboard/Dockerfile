@@ -3,7 +3,6 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 COPY ["Directory.Build.props", "."]
-COPY ["Directory.Packages.props", "."]
 COPY ["src/SmartShelf.Domain/SmartShelf.Domain.csproj", "src/SmartShelf.Domain/"]
 COPY ["src/SmartShelf.Application/SmartShelf.Application.csproj", "src/SmartShelf.Application/"]
 COPY ["src/SmartShelf.Dashboard/SmartShelf.Dashboard.csproj", "src/SmartShelf.Dashboard/"]

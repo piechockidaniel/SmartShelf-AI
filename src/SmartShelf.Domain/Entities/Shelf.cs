@@ -6,64 +6,130 @@ namespace SmartShelf.Domain.Entities;
 
 public class Shelf : AuditableEntity
 {
-    private readonly List<Product> _products = [];
+    private readonly List<ShelfResourceBinding> _bindings = [];
 
-    public string Name { get; private set; } = "";
-
-    public ShelfLocation Location { get; private set; } = new ShelfLocation("", "", "", "");
-
+    public string Name { get; private set; } = string.Empty;
+    public ShelfLocation Location { get; private set; } = new("", "", "", "");
+    public bool Enabled { get; private set; }
+    public int Version { get; private set; } = 1;
     public LedColor LedColor { get; private set; }
-
     public ShelfStatus Status { get; private set; }
-
-    public IReadOnlyCollection<Product> Products => _products;
+    public IReadOnlyCollection<ShelfResourceBinding> Bindings => _bindings;
 
     private Shelf() { }
 
-    public Shelf(string name, ShelfLocation location)
+    public Shelf(
+        string name, ShelfLocation location)
     {
-        Name = name;
+        ApplyConfiguration(name, location);
+        Enabled = true;
+        Status = ShelfStatus.Healthy;
+        LedColor = LedColor.Green;
+    }
+
+    public Shelf(
+        string name, ShelfLocation location, string? deviceId, string? cameraDevice)
+        : this(name, location)
+    {
+        // Compatibility constructor. Legacy strings are migrated to typed resources by persistence.
+    }
+
+    public void UpdateConfiguration(
+        string name, ShelfLocation location, string? deviceId = null, string? cameraDevice = null)
+    {
+        ApplyConfiguration(name, location);
+        MarkChanged();
+    }
+
+    public void SetEnabled(bool enabled)
+    {
+        if (Enabled == enabled)
+        {
+            return;
+        }
+
+        Enabled = enabled;
+        MarkChanged();
+    }
+
+    public void ReplaceBindings(IEnumerable<ShelfResourceBinding> bindings)
+    {
+        ArgumentNullException.ThrowIfNull(bindings);
+        var replacement = bindings.ToArray();
+        if (replacement.GroupBy(binding => new { binding.Kind, binding.ResourceId }).Any(group => group.Count() > 1))
+        {
+            throw new InvalidOperationException("A shelf cannot contain duplicate resource bindings.");
+        }
+
+        foreach (var singletonKind in new[]
+                 {
+                     ShelfResourceKind.Controller,
+                     ShelfResourceKind.Camera,
+                     ShelfResourceKind.LedOutput
+                 })
+        {
+            if (replacement.Count(binding => binding.Kind == singletonKind) > 1)
+            {
+                throw new InvalidOperationException($"A shelf can have only one {singletonKind} binding.");
+            }
+        }
+
+        if (_bindings.Select(Key).Order().SequenceEqual(replacement.Select(Key).Order()))
+        {
+            return;
+        }
+
+        _bindings.Clear();
+        _bindings.AddRange(replacement);
+        MarkChanged();
+    }
+
+    public static Shelf Restore(
+        Guid id, string name, ShelfLocation location, bool enabled, int version,
+        DateTime createdAt, DateTime? updatedAt,
+        IEnumerable<ShelfResourceBinding>? bindings = null)
+    {
+        var shelf = new Shelf
+        {
+            Id = id,
+            Name = name,
+            Location = location,
+            Enabled = enabled,
+            Version = version,
+            CreatedAt = createdAt,
+            UpdatedAt = updatedAt,
+            Status = ShelfStatus.Healthy,
+            LedColor = LedColor.Green
+        };
+        if (bindings is not null)
+        {
+            shelf._bindings.AddRange(bindings);
+        }
+        return shelf;
+    }
+
+    public static Shelf Restore(
+        Guid id, string name, ShelfLocation location, string? deviceId, string? cameraDevice,
+        bool enabled, DateTime createdAt, DateTime? updatedAt)
+        => Restore(id, name, location, enabled, 1, createdAt, updatedAt);
+
+    private void ApplyConfiguration(
+        string name, ShelfLocation location)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(location);
+        ArgumentException.ThrowIfNullOrWhiteSpace(location.Warehouse);
+        ArgumentException.ThrowIfNullOrWhiteSpace(location.Aisle);
+        ArgumentException.ThrowIfNullOrWhiteSpace(location.Shelf);
+        Name = name.Trim();
         Location = location;
-
-        Status = ShelfStatus.Healthy;
-        LedColor = LedColor.Green;
     }
 
-    public void AddProduct(Product product)
+    private void MarkChanged()
     {
-        _products.Add(product);
-        EvaluateStatus();
+        Version++;
+        Touch();
     }
 
-    public void RemoveProduct(Guid productId)
-    {
-        var product = _products.FirstOrDefault(x => x.Id == productId);
-
-        if (product is null)
-            return;
-
-        _products.Remove(product);
-
-        EvaluateStatus();
-    }
-
-    private void EvaluateStatus()
-    {
-        if (_products.Any(p => p.IsExpired()))
-        {
-            Status = ShelfStatus.Critical;
-            LedColor = LedColor.Red;
-            return;
-        }
-
-        if (_products.Any(p => p.DaysUntilExpiration() < 7))
-        {
-            Status = ShelfStatus.Warning;
-            LedColor = LedColor.Yellow;
-            return;
-        }
-
-        Status = ShelfStatus.Healthy;
-        LedColor = LedColor.Green;
-    }
+    private static string Key(ShelfResourceBinding binding) => $"{binding.Kind}:{binding.ResourceId:D}";
 }

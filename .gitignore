@@ -5,4 +5,9 @@
 **/.vs
 **/obj
 **/bin
-/src/SmartShelf.Api/SmartShelf.Api.csproj.user
+*.user
+**/node_modules
+**/dist
+/src/SmartShelf.Api/data
+/.playwright-cli
+*.tsbuildinfo
